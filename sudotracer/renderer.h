@@ -5,85 +5,81 @@
 #include <stdio.h>
 #include "intersectiontree.h"
 
+int evals = 0; // keep track of total evaluations per render
+
 //linked list of samples
-typedef struct samplenode
+class SampleNode
 {
+public:
 	IntersectionTree *tree;
-	struct samplenode *next;
-} SampleNode;
+	SampleNode *next;
 
-SampleNode *newSampleNode(float x, float y)
-{
-	SampleNode *out = (SampleNode*)malloc(sizeof(SampleNode));
-	out->tree = new IntersectionTree(x,y);
-	out->next = 0;
-	return out;
-}
+	SampleNode(float x, float y)
+	{
+		tree = new IntersectionTree(x,y);
+		next = 0;
+	}
 
-//debug render function
-int evals = 0;
-vec3 renderSample(SampleNode *n)
-{
-	evals++;
-	return n->tree->render();
-}
+	vec3 render()
+	{
+		evals++;
+		return tree->render();
+	}
+};
 
 //A single pixel may have 1, 5 or 9 samples
-typedef struct
+class SampledPixel
 {
+public:
 	int nSamples;
 	float x,y;
 	SampleNode *centre;
-} SampledPixel;
 
-//Generate new SampledPixel with one attached sample at the centre
-SampledPixel *newSampledPixel(float x, float y)
-{
-	SampledPixel *out = (SampledPixel*)malloc(sizeof(SampledPixel));
-	out->x = x;
-	out->y = y;
-	out->nSamples = 1;
-	out->centre = newSampleNode(x,y);
-	return out;
-}
-
-//Return the color of a pixel with subsampling in vec3 0.0 to 1.0
-vec3 renderSampledPixel(SampledPixel *pix)
-{
-	vec3 col = vec3(0.0);
-	SampleNode *n = pix->centre;
-	for (int i=0; i<pix->nSamples; i++) {
-		col += renderSample(n);
-		n = n->next;
-	}
-	col /= pix->nSamples;
-	return col;
-}
-
-//Add 4 more samples (max 9 total)
-void antialiasSampledPixel(SampledPixel *pix, float pixwidth)
-{
-	//if already max samples
-	if (pix->nSamples > 5) return; 
-
-	//offset sampling grid angle by atan(0.5)
-	float theta = atan(0.5);
-	//if second sample set, offset accordingly
-	if (pix->nSamples>1) {
-		theta += TWOPI/8.0;
+	SampledPixel(float _x, float _y)
+	{
+		x = _x;
+		y = _y;
+		nSamples = 1;
+		centre = new SampleNode(x,y);
 	}
 
-	SampleNode *ptr = pix->centre;
-	while (ptr->next) ptr = ptr->next;
-	for (int i=0; i<4; i++) {
-		float x = pix->x+sin(theta)*pixwidth/2.2;
-		float y = pix->y+cos(theta)*pixwidth/2.2;
-		ptr->next = newSampleNode(x,y);
-		ptr = ptr->next;
-		theta += TWOPI/4.0;
+	vec3 render()
+	{
+		vec3 col = vec3(0.0);
+		SampleNode *n = centre;
+		for (int i=0; i<nSamples; i++) {
+			col += n->render();
+			n = n->next;
+		}
+		col /= nSamples;
+		return col;
 	}
-	pix->nSamples += 4;
-}
+
+	//Add 4 more samples (max 9 total)
+	void antialias(float pixwidth)
+	{
+		//if already max samples
+		if (nSamples > 5) return; 
+
+		//offset sampling grid angle by atan(0.5)
+		float theta = atan(0.5);
+		//if second sample set, offset accordingly
+		if (nSamples>1) {
+			theta += TWOPI/8.0;
+		}
+
+		SampleNode *ptr = centre;
+		while (ptr->next) ptr = ptr->next;
+		for (int i=0; i<4; i++) {
+			float nx = x+sin(theta)*pixwidth/2.2;
+			float ny = y+cos(theta)*pixwidth/2.2;
+			ptr->next = new SampleNode(nx,ny);
+			ptr = ptr->next;
+			theta += TWOPI/4.0;
+		}
+		nSamples += 4;
+	}
+};
 
 
 //A mapping of an image to samplers for each pixel
@@ -105,7 +101,7 @@ public:
 			for (int y=0; y<height; y++) {
 				float px = float(x)/width;
 				float py = float(y)/width + (width-height)/(2.0*width);
-				sampledimage[y*width+x] = newSampledPixel(px,py);
+				sampledimage[y*width+x] = new SampledPixel(px,py);
 			}
 	}
 
@@ -132,7 +128,7 @@ public:
 					}
 				c2 /= n*255;
 				if (mag(c2) > 0.3)
-					antialiasSampledPixel(sampledimage[i/3], 1.0/width);
+					sampledimage[i/3]->antialias(1.0/width);
 			}
 		printf("completed\n");
 	}
@@ -142,7 +138,7 @@ public:
 		int arrlen = width*height;
 		for (int i=0; i<arrlen; i++) {
 			if (!((100*i)%arrlen)) printf("\rRendering image... %i%%", 100*i/arrlen);
-			vec3 c = renderSampledPixel(sampledimage[i]);
+			vec3 c = sampledimage[i]->render();
 			iclamp(c,0.0,1.0);
 			image[3*i]   = (unsigned char)(c.r*255);
 			image[3*i+1] = (unsigned char)(c.g*255);
