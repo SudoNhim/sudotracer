@@ -40,27 +40,37 @@ public:
 
 	//multiplication by constant
 	template <typename ntype>
-	const vec3& operator*=(ntype c);
+	vec3& operator*=(ntype c);
 
 	template <typename ntype>
 	vec3 operator*(ntype c);
 
 	//division by a constant
 	template <typename ntype>
-	const vec3& operator/=(ntype c);
+	vec3& operator/=(ntype c);
 
 	template <typename ntype>
 	vec3 operator/(ntype c);
 
 	//addition with other vector
-	const vec3& operator+=(vec3 rhs);
+	vec3& operator+=(vec3 rhs);
 
-	const vec3 operator+(vec3 rhs);
+	vec3 operator+(vec3 rhs);
 
 	//subtraction with other vector
-	const vec3& operator-=(vec3 rhs);
+	vec3& operator-=(vec3 rhs);
 
-	const vec3 operator-(vec3 rhs);
+	vec3 operator-(vec3 rhs);
+
+	//component-wise multiplication
+	vec3& operator*=(vec3 c);
+
+	vec3 operator*(vec3 c);
+
+	//component-wise division
+	vec3& operator/=(vec3 c);
+
+	vec3 operator/(vec3 c);
 };
 
 //[ COLORS ]-------------------------------------------
@@ -76,7 +86,7 @@ const vec3 BLACK = vec3(0.0f);
 
 //multiplication by constant
 template <typename ntype>
-const vec3& vec3::operator*=(ntype c)
+vec3& vec3::operator*=(ntype c)
 {
 	x *= c;
 	y *= c;
@@ -92,7 +102,7 @@ vec3 vec3::operator*(ntype c)
 
 //division by a constant
 template <typename ntype>
-const vec3& vec3::operator/=(ntype c)
+vec3& vec3::operator/=(ntype c)
 {
 	x /= c;
 	y /= c;
@@ -107,7 +117,7 @@ vec3 vec3::operator/(ntype c)
 }
 
 //addition with other vector
-const vec3& vec3::operator+=(const vec3 rhs)
+vec3& vec3::operator+=(const vec3 rhs)
 {
 	x += rhs.x;
 	y += rhs.y;
@@ -115,13 +125,13 @@ const vec3& vec3::operator+=(const vec3 rhs)
 	return *this;
 }
 
-const vec3 vec3::operator+(const vec3 rhs)
+vec3 vec3::operator+(const vec3 rhs)
 {
 	return vec3(*this)+=rhs;
 }
 
 //subtraction with other vector
-const vec3& vec3::operator-=(const vec3 rhs)
+vec3& vec3::operator-=(const vec3 rhs)
 {
 	x -= rhs.x;
 	y -= rhs.y;
@@ -129,9 +139,33 @@ const vec3& vec3::operator-=(const vec3 rhs)
 	return *this;
 }
 
-const vec3 vec3::operator-(const vec3 rhs)
+vec3 vec3::operator-(const vec3 rhs)
 {
 	return vec3(*this)-=rhs;
+}
+
+//component-wise multiplication
+vec3& vec3::operator*=(vec3 rhs) {
+	x *= rhs.x;
+	y *= rhs.y;
+	z *= rhs.z;
+	return *this;
+}
+
+vec3 vec3::operator*(vec3 rhs) {
+	return vec3(*this)*=rhs;
+}
+
+//component-wise division
+vec3& vec3::operator/=(vec3 rhs) {
+	x /= rhs.x;
+	y /= rhs.y;
+	z /= rhs.z;
+	return *this;
+}
+
+vec3 vec3::operator/(vec3 rhs) {
+	return vec3(*this)/=rhs;
 }
 
 
