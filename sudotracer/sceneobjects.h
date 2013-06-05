@@ -7,6 +7,7 @@ public:
 	vec3 diffuse;
 	vec3 specular;
 	vec3 ambient;
+	float shininess;
 	vec3 reflect;
 	vec3 refract;
 
@@ -18,27 +19,29 @@ public:
 	}
 
 	//Fully specified
-	PointMaterial(vec3 d, vec3 s, vec3 a, vec3 rfl, vec3 rfr)
-		: diffuse(d), specular(s), ambient(a), reflect(rfl), refract(rfr) {}
+	PointMaterial(vec3 d, vec3 s, vec3 a, vec3 rfl, vec3 rfr, float shine)
+		: diffuse(d), specular(s), ambient(a), reflect(rfl), refract(rfr), shininess(shine) {}
 };
 
 // Base class for surfaces in the scene
 class SceneObject
 {
-private:
+public:
 	Sampler3 *diffuse;
 	Sampler3 *specular;
 	Sampler3 *ambient;
 	Sampler3 *reflect;
 	Sampler3 *refract;
-public:
+	float shininess;
+
 	SceneObject()
 	{
-		diffuse = new Sampler3();
-		specular = new Sampler3();
-		ambient = new Sampler3();
-		reflect = new Sampler3();
-		refract = new Sampler3();
+		diffuse = new TexSampler3();
+		specular = new TexSampler3();
+		ambient = new TexSampler3();
+		reflect = new TexSampler3();
+		refract = new TexSampler3();
+		shininess = 32.0f;
 	}
 
 	virtual float intersect(vec3 ro, vec3 rd) = 0;
@@ -50,7 +53,8 @@ public:
 			specular->sample(0.0,0.0),
 			ambient->sample(0.0,0.0),
 			reflect->sample(0.0,0.0),
-			refract->sample(0.0,0.0)
+			refract->sample(0.0,0.0),
+			shininess
 			);
 		return mat;
 	}
@@ -58,7 +62,7 @@ public:
 	virtual vec3 normalAt(vec3 p) = 0;
 };
 
-//Sphere class
+
 class Sphere : public SceneObject
 {
 public:
@@ -81,5 +85,27 @@ public:
 	vec3 normalAt(vec3 p)
 	{
 		return normalized(p-pos);
+	}
+};
+
+
+class Plane : public SceneObject
+{
+public:
+	vec3 pos;
+	vec3 norm;
+
+	Plane(vec3 p, vec3 n) : SceneObject(),pos(p),norm(n) {} 
+
+	float intersect(vec3 ro, vec3 rd)
+	{
+		float d = dot(pos-ro, norm)/dot(rd, norm);
+		if (d>0.0) return d;
+		else return -1.0;
+	}
+
+	vec3 normalAt(vec3 p)
+	{
+		return norm;
 	}
 };

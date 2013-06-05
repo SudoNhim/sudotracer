@@ -1,25 +1,41 @@
 #include "sudovector.h"
 
+class Sampler3
+{
+public:
+	vec3 color; //default color for simple use
+	Sampler3(vec3 c) : color(c) {}
+	virtual vec3 sample(float x, float y) = 0;
+};
+
+class Sampler1
+{
+public:
+	float color; //default color for simple use
+	Sampler1(float c) : color(c) {}
+	virtual float sample(float x, float y) = 0;
+};
+
 // Contains data for a 2D r,g,b texture and provides interpolating
 // sampling. Also can be set to a solid color, and will be if no
 // texture data is specified.
-class Sampler3
+class TexSampler3 : public Sampler3
 {
 private:
 	unsigned char *image;
-	vec3 color; //use this if no texture specified
 	int width;
 	int height;
+
 public:
 	//Constructor - Default to red
-	Sampler3() : color(RED), image(0) {}
+	TexSampler3() : Sampler3(vec3(0.4,0.2,0.2)),image(0) {}
 
 	//Constructor - Solid color specified
-	Sampler3(vec3 col) : color(col), image(0) {}
+	TexSampler3(vec3 col) : Sampler3(col),image(0) {}
 
 	//Constructor - Texture specified
-	Sampler3(unsigned char *im, int w, int h) :
-		image(im), width(w), height(h) {}
+	TexSampler3(unsigned char *im, int w, int h) :
+		Sampler3(vec3(0.4,0.2,0.2)), image(im), width(w), height(h) {}
 
 	//linearly interpolate and return sample at x,y wrapped to 1,1
 	//for r,g,b texture elements
@@ -54,23 +70,23 @@ public:
 // Contains data for a 2D single channel texture and provides
 // interpolating sampling. Also can be set to a solid color,
 //and will be automatically if no data is specified.
-class Sampler1
+class TexSampler1 : public Sampler1
 {
 private:
 	unsigned char *image;
-	float color; //use this if no texture specified
 	int width;
 	int height;
+
 public:
-	//Constructor - Default to white
-	Sampler1() : color(1.0), image(0) {}
+	//Constructor - Default to grey
+	TexSampler1() : Sampler1(0.3), image(0) {}
 
 	//Constructor - Solid color specified
-	Sampler1(float col) : color(col), image(0) {}
+	TexSampler1(float col) : Sampler1(0.3), image(0) {}
 
 	//Constructor - Texture specified
-	Sampler1(unsigned char *im, int w, int h) :
-		image(im), width(w), height(h) {}
+	TexSampler1(unsigned char *im, int w, int h) :
+		Sampler1(0.3), image(im), width(w), height(h) {}
 
 	//linearly interpolate and return sample at x,y wrapped to 1,1
 	//for single component texture elements

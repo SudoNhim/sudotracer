@@ -127,7 +127,7 @@ public:
 						c2 += abs(c1-vec3(image[ni],image[ni+1],image[ni+2]));
 					}
 				c2 /= n*255;
-				if (mag(c2) > 0.3)
+				if (mag(c2) > 0.05)
 					sampledimage[i/3]->antialias(1.0/width);
 			}
 		printf("completed\n");
