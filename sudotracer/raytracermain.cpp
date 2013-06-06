@@ -5,8 +5,6 @@
 #include <GL/glut.h>
 #include "renderer.h"
 
-#include "C:/Program Files (x86)/Visual Leak Detector/include/vld.h"
-
 const int width = 640;
 const int height = 480;
 unsigned char *imagedata;
