@@ -135,14 +135,18 @@ public:
 
 	void renderImage()
 	{
+		printf("\n");
 		int arrlen = width*height;
 		for (int i=0; i<arrlen; i++) {
 			if (!((100*i)%arrlen)) printf("\rRendering image... %i%%", 100*i/arrlen);
-			vec3 c = sampledimage[i]->render();
+			printf("\nRendering pixel: %i\n",i);
+			SampledPixel *test = sampledimage[129597];
+			vec3 c = sampledimage[129597]->render();
 			iclamp(c,0.0,1.0);
 			image[3*i]   = (unsigned char)(c.r*255);
 			image[3*i+1] = (unsigned char)(c.g*255);
 			image[3*i+2] = (unsigned char)(c.b*255);
+			break;
 		}
 		printf("\rRendering complete.                    \n");
 		printf("Total samples: %i\n", evals);

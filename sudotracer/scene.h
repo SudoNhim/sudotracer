@@ -35,7 +35,7 @@ void initScene()
 	s1->ambient->color = vec3(0.3,0.4,0.8);
 	s1->diffuse->color = vec3(0.3,0.4,0.8);
 	s1->specular->color = vec3(1.0);
-	s1->reflect->color = vec3(1.0);
+	s1->reflect->color = vec3(0.7);
 
 	SceneObject *so1 = s1;
 	sceneObjectList[0] = so1;
@@ -60,7 +60,7 @@ void initScene()
 	int nBytes = texW*texH*3;
 	unsigned char *texData = (unsigned char*)malloc(nBytes);
 	fread(texData,1,nBytes, fopen("./textures/stonewall.raw","r"));
-	Sampler3 *plaster = new TexSampler3(texData,texW,texH);
+	Sampler3 *stonewall = new TexSampler3(texData,texW,texH);
 
 	//The far wall
 	Rect *pfarwall = new Rect(
@@ -68,9 +68,9 @@ void initScene()
 		vec3(10.0,0.0,0.0),
 		vec3(0.0,10.0,0.0)
 		);
-	pfarwall->ambient = plaster;
+	pfarwall->ambient = stonewall;
 	pfarwall->ambiLevel = 0.4;
-	pfarwall->diffuse = plaster;
+	pfarwall->diffuse = stonewall;
 	pfarwall->diffLevel = 0.1;
 	pfarwall->specular->color = vec3(0.05);
 
@@ -83,9 +83,9 @@ void initScene()
 		vec3(0.0,0.0,10.0),
 		vec3(0.0,10.0,0.0)
 		);
-	pleftwall->ambient = plaster;
+	pleftwall->ambient = stonewall;
 	pleftwall->ambiLevel = 0.4;
-	pleftwall->diffuse = plaster;
+	pleftwall->diffuse = stonewall;
 	pleftwall->diffLevel = 0.1;
 	pleftwall->specular->color = vec3(0.05);
 
@@ -98,21 +98,36 @@ void initScene()
 		vec3(0.0,0.0,-10.0),
 		vec3(0.0,10.0,0.0)
 		);
-	prightwall->ambient = plaster;
+	prightwall->ambient = stonewall;
 	prightwall->ambiLevel = 0.4;
-	prightwall->diffuse = plaster;
+	prightwall->diffuse = stonewall;
 	prightwall->diffLevel = 0.1;
 	prightwall->specular->color = vec3(0.05);
 
 	SceneObject *so5 = prightwall;
 	sceneObjectList[4] = so5;
 
+	//Wall behind camera
+	Rect *behindwall = new Rect(
+		vec3(-5.0,-5.0,-5.0),
+		vec3(10.0,0.0,0.0),
+		vec3(0.0,10.0,0.0)
+		);
+	behindwall->ambient = stonewall;
+	behindwall->ambiLevel = 0.4;
+	behindwall->diffuse = stonewall;
+	behindwall->diffLevel = 0.1;
+	behindwall->specular->color = vec3(0.05);
+
+	SceneObject *so6 = behindwall;
+	sceneObjectList[5] = so6;
+
 	//Label texture
 	texW=100,texH=25;
 	nBytes = texW*texH*3;
-	texData = (unsigned char*)malloc(nBytes);
-	fread(texData,1,nBytes, fopen("./textures/label.raw","r"));
-	Sampler3 *labeltex = new TexSampler3(texData,texW,texH);
+	unsigned char *texData2 = (unsigned char*)malloc(nBytes);
+	fread(texData2,1,nBytes, fopen("./textures/label.raw","r"));
+	Sampler3 *labeltex = new TexSampler3(texData2,texW,texH);
 
 	//Rectangle on back wall
 	Rect *label = new Rect(
@@ -126,22 +141,7 @@ void initScene()
 	label->diffLevel = 0.3;
 	label->specular->color = vec3(1.0);
 
-	SceneObject *so6 = label;
-	sceneObjectList[5] = so6;
-
-	//Wall behind camera
-	Rect *behindwall = new Rect(
-		vec3(-5.0,-5.0,-5.0),
-		vec3(10.0,0.0,0.0),
-		vec3(0.0,10.0,0.0)
-		);
-	behindwall->ambient = plaster;
-	behindwall->ambiLevel = 0.4;
-	behindwall->diffuse = plaster;
-	behindwall->diffLevel = 0.1;
-	behindwall->specular->color = vec3(0.05);
-
-	SceneObject *so7 = behindwall;
+	SceneObject *so7 = label;
 	sceneObjectList[6] = so7;
 	
 	//////////////////

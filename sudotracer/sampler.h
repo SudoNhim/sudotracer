@@ -94,8 +94,8 @@ public:
 	//for single component texture elements
 	float sample(float x, float y)
 	{
-		x = fmodf(x+9999,1.0);
-		y = fmodf(y+9999,1.0);
+		x = fmodf(x+999999.0,1.0);
+		y = fmodf(y+999999.0,1.0);
 		int ix = int(x*(width-1));
 		int iy = int(y*(height-1));
 		float rx = x*(width-1)-ix;

@@ -36,7 +36,7 @@ public:
 		float d=0.0;
 		for (int i=0; i<sceneNumObjects; i++) {
 			d = sceneObjectList[i]->intersect(ro,rd);
-			if (d>0.0 && (d<nearest || nearest<0.0)) {
+			if (d>0.00001 && d<99.0 && (d<nearest || nearest<0.0)) {
 				nearest = d;
 				hit = sceneObjectList[i];
 			}
@@ -48,23 +48,22 @@ public:
 			pos = ro + rd*nearest;
 			mat = hit->materialAt(pos);
 			normal = hit->normalAt(pos);
-		}
 
-		calculatePhongLighting();
-
-		float rflsig = mag(mat->reflect)*significance;
-		float rfrsig = mag(mat->refract)*significance;
+			float rflsig = mag(mat->reflect)*significance/sqrt(3.0);
+			float rfrsig = mag(mat->refract)*significance/sqrt(3.0);
 		
-		if (rflsig > MIN_SIGNIFICANCE) {
-			vec3 rfld = rd - normal*dot(rd,normal)*2;
-			reflect = new IntersectionNode(pos, rfld, rflsig);
-		} else reflect = 0;
+			if (rflsig > MIN_SIGNIFICANCE) {
+				vec3 rfld = rd - normal*dot(rd,normal)*2;
+				reflect = new IntersectionNode(pos, rfld, rflsig);
+			} else reflect = 0;
 
-		if (rfrsig > MIN_SIGNIFICANCE) {
-			vec3 rfrd = view*mat->refractIndex + normal*(1.0-mat->refractIndex);
-			inormalize(rfrd);
-			refract = new IntersectionNode(pos, rfrd, rfrsig);
-		} else refract = 0;
+			if (rfrsig > MIN_SIGNIFICANCE) {
+				vec3 rfrd = view*mat->refractIndex + normal*(1.0-mat->refractIndex);
+				inormalize(rfrd);
+				refract = new IntersectionNode(pos, rfrd, rfrsig);
+			} else refract = 0;
+		}
+		calculatePhongLighting();
 	}
 
 	void calculatePhongLighting()
@@ -81,9 +80,9 @@ public:
 		vec3 col = mat->diffuse  * phongLight.diffuse
 			     + mat->ambient  * phongLight.ambient
 			     + mat->specular * phongLight.specular;
-		col *= significance;
-		if (reflect) col += reflect->renderPhong();
-		if (refract) col += refract->renderPhong();
+		col *= vec3(1.0) - mat->reflect - mat->refract;
+		if (reflect) col += reflect->renderPhong() * mat->reflect;
+		if (refract) col += refract->renderPhong() * mat->refract;
 		return col;
 	}
 

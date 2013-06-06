@@ -69,15 +69,14 @@ public:
 
 	PointMaterial *sampleAt(float x, float y)
 	{
-		PointMaterial *mat = new PointMaterial(
-			diffuse->sample(x,y)*diffLevel,
-			specular->sample(x,y)*specLevel,
-			ambient->sample(x,y)*ambiLevel,
-			reflect->sample(x,y)*reflLevel,
-			refract->sample(x,y)*refrLevel,
-			shininess,
-			refrIndex
-			);
+		vec3 a = diffuse->sample(x,y)*diffLevel;
+		vec3 b = specular->sample(x,y)*specLevel;
+		vec3 c = ambient->sample(x,y)*ambiLevel;
+		vec3 d = reflect->sample(x,y)*reflLevel;
+		vec3 e = refract->sample(x,y)*refrLevel;
+		float f = shininess;
+		float g = refrIndex;
+		PointMaterial *mat = new PointMaterial(a,b,c,d,e,f,g);
 		return mat;
 	}
 
@@ -193,6 +192,7 @@ public:
 	float intersect(vec3 ro, vec3 rd)
 	{
 		float d = dot(pos-ro, norm)/dot(rd, norm);
+		if (d<=0 || d>9999.0) return -1.0;
 		vec3 disp = (ro + rd*d) - pos;
 		float u = dot(side1, disp);
 		if (u<0.0 || u>length1) return -1.0;
