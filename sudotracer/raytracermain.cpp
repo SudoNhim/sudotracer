@@ -93,6 +93,8 @@ int main(int argc, char **argv)
 	glutDisplayFunc(drawScene);
 	glutMouseFunc(mouse);
 
+	drawScene();
+
     glutMainLoop();
 	return 0;
 }

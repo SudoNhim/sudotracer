@@ -45,12 +45,12 @@ public:
 	{
 		if (!image) return color;
 
-		x = fmodf(x,1.0)+abs(int(x));
-		y = fmodf(y,1.0)+abs(int(y));
-		int ix = int(x*width);
-		int iy = int(y*height);
-		float rx = x*width-ix;
-		float ry = y*height-iy;
+		x = fmodf(x+9999,1.0);
+		y = fmodf(y+9999,1.0);
+		int ix = int(x*(width-1));
+		int iy = int(y*(height-1));
+		float rx = x*(width-1)-ix;
+		float ry = y*(height-1)-iy;
 		vec3 out = vec3(0.0);
 		for (int i=0;i<=1;i++)
 			for(int j=0;j<=1;j++) {
@@ -88,7 +88,7 @@ public:
 
 	//Constructor - Texture specified
 	TexSampler1(unsigned char *im, int w, int h) :
-		Sampler1(), image(im), width(w), height(h) {}
+		Sampler1(), image(im), width(w-1), height(h-1) {}
 
 	//linearly interpolate and return sample at x,y wrapped to 1,1
 	//for single component texture elements
@@ -96,10 +96,10 @@ public:
 	{
 		x = fmodf(x+9999,1.0);
 		y = fmodf(y+9999,1.0);
-		int ix = int(x*width);
-		int iy = int(y*height);
-		float rx = x*width-ix;
-		float ry = y*height-iy;
+		int ix = int(x*(width-1));
+		int iy = int(y*(height-1));
+		float rx = x*(width-1)-ix;
+		float ry = y*(height-1)-iy;
 		float out = 0.0;
 		for (int i=0;i<=1;i++)
 			for(int j=0;j<=1;j++) {

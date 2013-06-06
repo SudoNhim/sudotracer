@@ -1,8 +1,13 @@
 #include "scene.h"
 
+const float MIN_SIGNIFICANCE = 0.02; //don't trace rays that contribute less than 2%
+
 class IntersectionNode
 {
 public:
+	//contribution to tree
+	float significance;
+
 	//ray
 	vec3 pos;
 	vec3 normal;
@@ -21,9 +26,10 @@ public:
 	IntersectionNode *refract;
 
 	//intersect with the scene and spawn child rays
-	IntersectionNode(vec3 ro, vec3 rd)
+	IntersectionNode(vec3 ro, vec3 rd, float sig)
 	{
-		view = rd;
+		significance = sig;
+		view = rd*-1;
 		phongLight = PointLighting();
 		photonMapLight = PointLighting();
 		float nearest = -1.0;
@@ -43,7 +49,22 @@ public:
 			mat = hit->materialAt(pos);
 			normal = hit->normalAt(pos);
 		}
+
 		calculatePhongLighting();
+
+		float rflsig = mag(mat->reflect)*significance;
+		float rfrsig = mag(mat->refract)*significance;
+		
+		if (rflsig > MIN_SIGNIFICANCE) {
+			vec3 rfld = rd - normal*dot(rd,normal)*2;
+			reflect = new IntersectionNode(pos, rfld, rflsig);
+		} else reflect = 0;
+
+		if (rfrsig > MIN_SIGNIFICANCE) {
+			vec3 rfrd = view*mat->refractIndex + normal*(1.0-mat->refractIndex);
+			inormalize(rfrd);
+			refract = new IntersectionNode(pos, rfrd, rfrsig);
+		} else refract = 0;
 	}
 
 	void calculatePhongLighting()
@@ -57,9 +78,13 @@ public:
 
 	vec3 renderPhong()
 	{
-		return mat->diffuse  * phongLight.diffuse
-			 + mat->ambient  * phongLight.ambient
-			 + mat->specular * phongLight.specular;
+		vec3 col = mat->diffuse  * phongLight.diffuse
+			     + mat->ambient  * phongLight.ambient
+			     + mat->specular * phongLight.specular;
+		col *= significance;
+		if (reflect) col += reflect->renderPhong();
+		if (refract) col += refract->renderPhong();
+		return col;
 	}
 
 	vec3 renderPhotonMap()
@@ -81,7 +106,7 @@ public:
 		y = 2*(y-0.5);
 		vec3 ro = vec3(0.0,0.0,-5.0);
 		vec3 rd = vec3(x,y,-4.0)-ro;
-		head = new IntersectionNode(ro,rd);
+		head = new IntersectionNode(ro,rd, 1.0);
 	}
 
 	vec3 render() { return head->renderPhong(); }
