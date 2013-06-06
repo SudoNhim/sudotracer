@@ -46,14 +46,19 @@ public:
 
 	virtual float intersect(vec3 ro, vec3 rd) = 0;
 
-	PointMaterial *materialAt(vec3 p)
+	virtual PointMaterial *materialAt(vec3 p)
+	{
+		return sampleAt(0.0,0.0);
+	}
+
+	PointMaterial *sampleAt(float x, float y)
 	{
 		PointMaterial *mat = new PointMaterial(
-			diffuse->sample(0.0,0.0),
-			specular->sample(0.0,0.0),
-			ambient->sample(0.0,0.0),
-			reflect->sample(0.0,0.0),
-			refract->sample(0.0,0.0),
+			diffuse->sample(x,y),
+			specular->sample(x,y),
+			ambient->sample(x,y),
+			reflect->sample(x,y),
+			refract->sample(x,y),
 			shininess
 			);
 		return mat;
@@ -94,14 +99,51 @@ class Plane : public SceneObject
 public:
 	vec3 pos;
 	vec3 norm;
+	int axisMode;
 
-	Plane(vec3 p, vec3 n) : SceneObject(),pos(p),norm(n) {} 
+	//map sampler perp to world coords
+	Plane(vec3 p, vec3 n) : SceneObject(),pos(p),norm(n)
+	{
+		if (n.x > n.y) {
+			if (n.x > n.z) {
+				axisMode = 0;
+			} else {
+				axisMode = 2;
+			}
+		} else {
+			if (n.y > n.z) {
+				axisMode = 1;
+			} else {
+				axisMode = 2;
+			}
+		}
+
+	} 
 
 	float intersect(vec3 ro, vec3 rd)
 	{
 		float d = dot(pos-ro, norm)/dot(rd, norm);
 		if (d>0.0) return d;
 		else return -1.0;
+	}
+
+	PointMaterial *materialAt(vec3 p)
+	{
+		float u,v;
+		switch(axisMode) {
+		case 0:
+			u = p.y;
+			v = p.z;
+			break;
+		case 1:
+			u = p.x;
+			v = p.z;
+			break;
+		case 2:
+			u = p.x;
+			v = p.y;
+		}
+		return sampleAt(u,v);
 	}
 
 	vec3 normalAt(vec3 p)

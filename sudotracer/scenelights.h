@@ -32,14 +32,14 @@ public:
 class PointLight : public SceneLight
 {
 public:
-	vec3 position;
+	vec3 lightpos;
 	vec3 color;
 	float ambientmod;
 	float specularmod;
 	float diffusemod;
 	float halflife_dist;
 
-	PointLight(vec3 pos, vec3 col) : position(pos), color(col) {
+	PointLight(vec3 pos, vec3 col) : lightpos(pos), color(col) {
 		halflife_dist = 5.0;
 		ambientmod = 1.0;
 		diffusemod = 1.0;
@@ -49,7 +49,7 @@ public:
 	PointLighting lightAt(vec3 pos, vec3 norm, vec3 view, float specf)
 	{
 		PointLighting out = PointLighting();
-		vec3 disp = position-pos;
+		vec3 disp = lightpos-pos;
 		float dist = mag(disp);
 		out.ambient = color*pow(0.5f, dist/halflife_dist)*ambientmod;
 		out.diffuse = color*MAX(0.0f, dot(disp,norm))*diffusemod;
