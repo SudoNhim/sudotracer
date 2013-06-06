@@ -47,9 +47,11 @@ void initScene()
 	SceneObject *so2 = pfloor;
 	sceneObjectList[1] = so2;
 
+	//Plaster texture
+	Sampler3 *plaster = new TexSampler3();
+
 	//The far wall
 	Plane *pfarwall = new Plane(vec3(0.0,0.0,5.0), vec3(0.0,0.0,1.0));
-	Sampler3 *plaster = new TexSampler3();
 	pfarwall->ambient = plaster;
 	pfarwall->diffuse = plaster;
 	pfarwall->specular->color = vec3(0.05);
