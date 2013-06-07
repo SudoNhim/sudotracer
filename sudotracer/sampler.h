@@ -49,14 +49,14 @@ public:
 		y = fmodf(y+9999,1.0);
 		int ix = int(x*(width-1));
 		int iy = int(y*(height-1));
-		float rx = x*(width-1)-ix;
-		float ry = y*(height-1)-iy;
+		float rx = fmodf(x*(width-1),1.0);
+		float ry = fmodf(y*(height-1),1.0);
 		vec3 out = vec3(0.0);
 		for (int i=0;i<=1;i++)
 			for(int j=0;j<=1;j++) {
 				float cx = rx*i+(1.0-rx)*(1-i);
 				float cy = ry*j+(1.0-ry)*(1-j);
-				float f = (cx+cy)/2;
+				float f = cx*cy;
 				int index = (ix+i+(iy+j)*width)*3;
 				out += vec3(
 					image[index],
@@ -105,7 +105,7 @@ public:
 			for(int j=0;j<=1;j++) {
 				float cx = rx*i+(1.0-rx)*(1-i);
 				float cy = ry*j+(1.0-ry)*(1-j);
-				float f = (cx+cy)/2;
+				float f = cx*cy;
 				int index = ix+i+(iy+j)*width;
 				out += image[index]*f/255.0;
 			}

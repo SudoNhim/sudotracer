@@ -27,6 +27,8 @@ class SceneLight
 {
 public:
 	virtual PointLighting lightAt(vec3 pos, vec3 norm, vec3 view, float specf) = 0;
+	virtual vec3 shadowDirAt(vec3 pos) = 0;
+	virtual float shadowDistAt(vec3 pos) = 0;
 };
 
 class PointLight : public SceneLight
@@ -55,5 +57,49 @@ public:
 		out.diffuse = color*MAX(0.0f, dot(disp,norm))*diffusemod;
 		out.specular = color*pow(MAX(0.0f, dot((normalized(view+(disp/dist))), norm)), specf)*specularmod;
 		return out;
+	}
+
+	vec3 shadowDirAt(vec3 pos)
+	{
+		return normalized(lightpos-pos);
+	}
+
+	float shadowDistAt(vec3 pos)
+	{
+		return mag(lightpos-pos);
+	}
+};
+
+class DirectionalLight : public SceneLight
+{
+public:
+	vec3 lightdir;
+	vec3 color;
+	float ambientmod;
+	float specularmod;
+	float diffusemod;
+
+	DirectionalLight(vec3 dir, vec3 col) : lightdir(normalized(dir)), color(col) {
+		ambientmod = 1.0;
+		diffusemod = 1.0;
+		specularmod = 1.0;
+	}
+	PointLighting lightAt(vec3 pos, vec3 norm, vec3 view, float specf)
+	{
+		PointLighting out = PointLighting();
+		out.ambient = color*ambientmod;
+		out.diffuse = color*MAX(0.0f, dot(lightdir,norm))*diffusemod;
+		out.specular = color*pow(MAX(0.0f, dot((normalized(view+lightdir)), norm)), specf)*specularmod;
+		return out;
+	}
+
+	vec3 shadowDirAt(vec3 pos)
+	{
+		return lightdir;
+	}
+
+	float shadowDistAt(vec3 pos)
+	{
+		return 9999.0;
 	}
 };

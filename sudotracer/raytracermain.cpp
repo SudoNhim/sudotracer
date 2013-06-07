@@ -5,8 +5,8 @@
 #include <GL/glut.h>
 #include "renderer.h"
 
-const int width = 640;
-const int height = 480;
+#define IMAGE_WIDTH 640
+#define IMAGE_HEIGHT 480
 unsigned char *imagedata;
 PixelMap *pmap;
 
@@ -14,7 +14,7 @@ void initGLUT(int argc, char **argv)
 {
     glutInit(&argc,argv);
     glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB );
-    glutInitWindowSize(width, height);
+    glutInitWindowSize(IMAGE_WIDTH, IMAGE_HEIGHT);
     glutCreateWindow("Raytracing");
 }
 
@@ -31,7 +31,7 @@ void initGL()
 void initTex()
 {
 	// Allocate data for the image
-	int nBytes = width*height*3;
+	int nBytes = IMAGE_WIDTH*IMAGE_HEIGHT*3;
 	imagedata = (unsigned char*)malloc(nBytes);
 
 	// Generate an ID and bind it as the current texture
@@ -45,7 +45,7 @@ void initTex()
 void drawGL()
 {
 	// Load the image into texture memory
-	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, imagedata );
+	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB, IMAGE_WIDTH, IMAGE_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, imagedata );
 
 	// Draw a textured quad
 	glBegin(GL_QUADS);
@@ -83,7 +83,7 @@ int main(int argc, char **argv)
 	initScene();
 
 	// Initiate mapping from pixels to samples
-	pmap = new PixelMap(imagedata, width, height);
+	pmap = new PixelMap(imagedata, IMAGE_WIDTH, IMAGE_HEIGHT);
 
 	//Init ray intersection trees
 

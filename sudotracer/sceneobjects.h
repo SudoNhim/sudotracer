@@ -18,6 +18,7 @@ public:
 		diffuse = specular = ambient = col;
 		reflect = refract = vec3(0.0);
 		refractIndex = 1.0;
+		shininess = 32.0;
 	}
 
 	//Fully specified
@@ -191,7 +192,9 @@ public:
 
 	float intersect(vec3 ro, vec3 rd)
 	{
-		float d = dot(pos-ro, norm)/dot(rd, norm);
+		vec3 nnorm = norm;
+		if (dot(rd,norm)>0) nnorm *= -1.0;
+		float d = dot(pos-ro, nnorm)/dot(rd, nnorm);
 		if (d<=0 || d>9999.0) return -1.0;
 		vec3 disp = (ro + rd*d) - pos;
 		float u = dot(side1, disp);
@@ -212,5 +215,69 @@ public:
 	vec3 normalAt(vec3 p)
 	{
 		return norm;
+	}
+};
+
+class NormalMappedRect : public Rect
+{
+public:
+	Sampler3 *normalMap;
+
+	NormalMappedRect(vec3 p, vec3 s1, vec3 s2) : Rect(p,s1,s2),normalMap(new TexSampler3(vec3(0.0,0.0,1.0))) {}
+
+	vec3 normalAt(vec3 p)
+	{
+		vec3 disp = p-pos;
+		float u = dot(side1, disp)/length1;
+		float v = dot(side2, disp)/length2;
+		vec3 nmap = normalMap->sample(u,v);
+		return normalized(side1*nmap.x+side2*nmap.y+norm*nmap.z);
+	}
+};
+
+//custom surface example
+class StrangeOoze : public SceneObject
+{
+public:
+	vec3 pos;
+
+	StrangeOoze(vec3 p) : SceneObject(), pos(p) {}
+
+	float dfunc(vec3 p)
+	{
+		vec3 disp = (p-pos);
+		return sqrt(disp.x*disp.x + disp.z*disp.z) -0.3 -0.1*sin(5.0*p.y);
+	}
+
+	float intersect(vec3 ro, vec3 rd)
+	{
+		float lastd = 0.0;
+		float d=dfunc(ro);
+		while (d-lastd>0.002 && d<99.0) {
+			lastd = d;
+			d += dfunc(ro+rd*MAX(d,0.0001));
+		} d += dfunc(ro+rd*d);
+		if (d<99.0)
+			return d;
+		else
+			return -1.0;
+	}
+
+	vec3 normalAt(vec3 p)
+	{
+		float eps = 0.0001;
+		return normalized(vec3(
+			dfunc(p) - dfunc(p-vec3(eps,0,0)),
+			dfunc(p) - dfunc(p-vec3(0,eps,0)),
+			dfunc(p) - dfunc(p-vec3(0,0,eps))
+			));
+	}
+
+	PointMaterial *materialAt(vec3 p)
+	{
+		vec3 disp = p-pos;
+		float u = disp.y/5.0;
+		float v = atan(disp.z/disp.x + 0.3);
+		return sampleAt(u,v);
 	}
 };

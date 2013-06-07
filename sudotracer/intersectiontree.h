@@ -20,6 +20,7 @@ public:
 	//lighting
 	PointLighting phongLight;
 	PointLighting photonMapLight;
+	bool isShadowed[sceneNumLights];
 
 	//child rays
 	IntersectionNode *reflect;
@@ -32,6 +33,8 @@ public:
 		view = rd*-1;
 		phongLight = PointLighting();
 		photonMapLight = PointLighting();
+
+		//Intersect with scene
 		float nearest = -1.0;
 		float d=0.0;
 		for (int i=0; i<sceneNumObjects; i++) {
@@ -44,16 +47,32 @@ public:
 		if (nearest==-1.0) { //No intersection
 			mat = new PointMaterial(vec3(0.6,0.6,0.9));
 			hit = 0;
-		} else {
+			reflect = 0;
+			refract = 0;
+		} else { //Intersection
 			pos = ro + rd*nearest;
 			mat = hit->materialAt(pos);
 			normal = hit->normalAt(pos);
+
+			//Check for shadowing
+			for (int i=0; i<sceneNumLights; i++) {
+				isShadowed[i] = false;
+				vec3 ldir = sceneLightList[i]->shadowDirAt(pos);
+				float maxd = sceneLightList[i]->shadowDistAt(pos);
+				for (int j=0; j<sceneNumObjects; j++) {
+					float dl = sceneObjectList[j]->intersect(pos,ldir);
+					if ( dl > 0.01 && dl < maxd) {
+						isShadowed[i] = true;
+						break;
+					}
+				}
+			}
 
 			float rflsig = mag(mat->reflect)*significance/sqrt(3.0);
 			float rfrsig = mag(mat->refract)*significance/sqrt(3.0);
 		
 			if (rflsig > MIN_SIGNIFICANCE) {
-				vec3 rfld = rd - normal*dot(rd,normal)*2;
+				vec3 rfld = normalized(rd - normal*dot(rd,normal)*2);
 				reflect = new IntersectionNode(pos, rfld, rflsig);
 			} else reflect = 0;
 
@@ -71,7 +90,12 @@ public:
 		if (!hit) return;
 		phongLight.set(0.0);
 		for (int i=0; i<sceneNumLights; i++) {
-			phongLight += sceneLightList[i]->lightAt(pos,normal,view,mat->shininess);
+			PointLighting l = sceneLightList[i]->lightAt(pos,normal,view,mat->shininess);
+			if (isShadowed[i]) {
+				l.diffuse *= 0.0;
+				l.specular *= 0.0;
+			}
+			phongLight += l;
 		}
 	}
 
@@ -104,7 +128,7 @@ public:
 		x = 2*(x-0.5);
 		y = 2*(y-0.5);
 		vec3 ro = vec3(0.0,0.0,-5.0);
-		vec3 rd = vec3(x,y,-4.0)-ro;
+		vec3 rd = normalized(vec3(x,y,-4.0)-ro);
 		head = new IntersectionNode(ro,rd, 1.0);
 	}
 

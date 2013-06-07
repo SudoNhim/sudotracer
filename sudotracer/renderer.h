@@ -1,4 +1,4 @@
-//Maps image pixels to groups of subpixels for adaptive antialiasing
+//Maps image pixels to groups of subpixels for adaptive antialiasingIntersectionTree(
 
 #include <malloc.h>
 #include "sudovector.h"
@@ -85,11 +85,11 @@ public:
 //A mapping of an image to samplers for each pixel
 class PixelMap
 {
+	SampledPixel **sampledimage;
 public:
 	unsigned char *image;
 	int width;
 	int height;
-	SampledPixel **sampledimage;
 
 	PixelMap(unsigned char *imagedata, int imagewidth, int imageheight)
 	{
@@ -97,17 +97,22 @@ public:
 		width = imagewidth;
 		height = imageheight;
 		sampledimage = (SampledPixel**)malloc(width*height*sizeof(SampledPixel*));
-		for (int x=0; x<width; x++)
+		printf("\n");
+		for (int x=0; x<width; x++) {
+			printf("\rCalculating intersection trees... %i%%", 100*x/width);
 			for (int y=0; y<height; y++) {
 				float px = float(x)/width;
 				float py = float(y)/width + (width-height)/(2.0*width);
 				sampledimage[y*width+x] = new SampledPixel(px,py);
 			}
+		}
+		SampledPixel *test = sampledimage[129597];
+		printf("\nPixel map created\n");
 	}
 
 	void adaptiveAA()
 	{
-		printf("Running adaptive AA pass...  ");
+		printf("\nRunning adaptive AA pass...  ");
 		for (int x=0; x<width; x++)
 			for (int y=0; y<height; y++) {
 				int i = 3*(y*width+x);
@@ -139,16 +144,13 @@ public:
 		int arrlen = width*height;
 		for (int i=0; i<arrlen; i++) {
 			if (!((100*i)%arrlen)) printf("\rRendering image... %i%%", 100*i/arrlen);
-			printf("\nRendering pixel: %i\n",i);
-			SampledPixel *test = sampledimage[129597];
-			vec3 c = sampledimage[129597]->render();
+			vec3 c = sampledimage[i]->render();
 			iclamp(c,0.0,1.0);
 			image[3*i]   = (unsigned char)(c.r*255);
 			image[3*i+1] = (unsigned char)(c.g*255);
 			image[3*i+2] = (unsigned char)(c.b*255);
-			break;
 		}
-		printf("\rRendering complete.                    \n");
+		printf("\nRendering complete.                    \n");
 		printf("Total samples: %i\n", evals);
 		evals = 0;
 	}
