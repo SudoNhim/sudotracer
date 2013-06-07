@@ -1,4 +1,4 @@
-//Maps image pixels to groups of subpixels for adaptive antialiasingIntersectionTree(
+//Maps image pixels to groups of subpixels for adaptive antialiasing
 
 #include <malloc.h>
 #include "sudovector.h"
