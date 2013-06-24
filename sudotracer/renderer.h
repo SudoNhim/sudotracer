@@ -97,7 +97,6 @@ public:
 		width = imagewidth;
 		height = imageheight;
 		sampledimage = (SampledPixel**)malloc(width*height*sizeof(SampledPixel*));
-		printf("\n");
 		for (int x=0; x<width; x++) {
 			printf("\rCalculating intersection trees... %i%%", 100*x/width);
 			for (int y=0; y<height; y++) {
@@ -107,13 +106,13 @@ public:
 			}
 		}
 		SampledPixel *test = sampledimage[129597];
-		printf("\nPixel map created\n");
+		printf("\rCalculating intersection trees... completed\n");
 	}
 
 	void adaptiveAA()
 	{
-		printf("\nRunning adaptive AA pass...  ");
-		for (int x=0; x<width; x++)
+		for (int x=0; x<width; x++) {
+			printf("\rRunning adaptive AA pass... %i%%", 100*x/width);
 			for (int y=0; y<height; y++) {
 				int i = 3*(y*width+x);
 				vec3 c1 = vec3(image[i],image[i+1],image[i+2]);
@@ -135,12 +134,11 @@ public:
 				if (mag(c2) > 0.05)
 					sampledimage[i/3]->antialias(1.0/width);
 			}
-		printf("completed\n");
+		} printf("\rRunning adaptive AA pass... completed\n");
 	}
 
 	void renderImage()
 	{
-		printf("\n");
 		int arrlen = width*height;
 		for (int i=0; i<arrlen; i++) {
 			if (!((100*i)%arrlen)) printf("\rRendering image... %i%%", 100*i/arrlen);
@@ -150,8 +148,8 @@ public:
 			image[3*i+1] = (unsigned char)(c.g*255);
 			image[3*i+2] = (unsigned char)(c.b*255);
 		}
-		printf("\nRendering complete.                    \n");
-		printf("Total samples: %i\n", evals);
+		printf("\rRendering image...  complete\n");
+		//printf("Total samples: %i\n", evals);
 		evals = 0;
 	}
 };
